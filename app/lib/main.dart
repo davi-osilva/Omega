@@ -21,7 +21,7 @@ const Color omegaBlueLight = Color(0xFF60A5FA);
 const Color omegaBackground = Color(0xFF08111C);
 const Color omegaSurface = Color(0xFF101C2A);
 const Color omegaSurfaceLight = Color(0xFF17283A);
-const Color omegaText = Color(0xFFF3F6F8);
+const Color omegaText = Color(0xFFDCE4E9);
 const Color omegaTextSecondary = Color(0xFF8FA1B2);
 
 const Color statusGreen = Color(0xFF35A866);
@@ -80,7 +80,7 @@ class RiskInfo {
         return 'Condições normais de operação.';
 
       case RiskLevel.medio:
-        return 'Parâmetros levemente fora do padrão. Acompanhe.';
+        return 'Parâmetros levemente fora do padrão.';
 
       case RiskLevel.alto:
         return 'Risco elevado — recomenda-se verificar a máquina.';
@@ -216,7 +216,7 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 450),
-        pageBuilder: (_, __, ___) => const OmegaHome(),
+        pageBuilder: (_, __, ___) => const LoginScreen(),
         transitionsBuilder: (_, animation, __, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -250,6 +250,187 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// LOGIN DEMONSTRATIVO
+// ============================================================
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  static const demoEmail = 'operador@omega.com';
+  static const demoPassword = 'Omega123';
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _login() {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+
+    final validCredentials =
+        _emailController.text.trim().toLowerCase() == demoEmail &&
+        _passwordController.text == demoPassword;
+
+    if (!validCredentials) {
+      setState(() {
+        _errorMessage = 'E-mail ou senha inválidos.';
+      });
+      return;
+    }
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const OmegaHome()),
+    );
+  }
+
+  InputDecoration _fieldDecoration({
+    required String label,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: omegaTextSecondary),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: omegaSurfaceLight,
+      labelStyle: const TextStyle(color: omegaTextSecondary),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: omegaBlue),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: omegaBackground,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Image.asset('omega.png', height: 220),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Acesso ao Omega',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: omegaText,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Entre para acessar o painel da máquina.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: omegaTextSecondary, fontSize: 14),
+                    ),
+                    const SizedBox(height: 22),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      style: const TextStyle(color: omegaText),
+                      decoration: _fieldDecoration(
+                        label: 'E-mail',
+                        icon: Icons.email_outlined,
+                      ),
+                      validator: (value) => value == null || value.trim().isEmpty
+                          ? 'Digite seu e-mail.'
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _login(),
+                      style: const TextStyle(color: omegaText),
+                      decoration: _fieldDecoration(
+                        label: 'Senha',
+                        icon: Icons.lock_outline,
+                        suffixIcon: IconButton(
+                          tooltip: _obscurePassword
+                              ? 'Mostrar senha'
+                              : 'Ocultar senha',
+                          onPressed: () => setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          }),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: omegaTextSecondary,
+                          ),
+                        ),
+                      ),
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Digite sua senha.'
+                          : null,
+                    ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        _errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: statusRed, fontSize: 13),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 52,
+                      child: FilledButton.icon(
+                        onPressed: _login,
+                        icon: const Icon(Icons.login),
+                        label: const Text('Entrar'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: omegaBlue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -297,6 +478,7 @@ class _OmegaHomeState extends State<OmegaHome> {
             const MonitoringPage()
           else
             const SizedBox.shrink(),
+          const OperatorProfilePage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -319,8 +501,152 @@ class _OmegaHomeState extends State<OmegaHome> {
             selectedIcon: Icon(Icons.visibility),
             label: 'Monitoramento',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
         ],
       ),
+    );
+  }
+}
+
+// ============================================================
+// PERFIL DO OPERADOR
+// ============================================================
+
+class OperatorProfilePage extends StatelessWidget {
+  const OperatorProfilePage({super.key});
+
+  void _logout(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Perfil')),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const CircleAvatar(
+                radius: 42,
+                backgroundColor: omegaBlue,
+                child: Icon(Icons.person, size: 46, color: Colors.white),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'João da Silva',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: omegaText,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'operador@omega.com',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: omegaTextSecondary, fontSize: 14),
+              ),
+              const SizedBox(height: 28),
+              OmegaCard(
+                padding: const EdgeInsets.all(20),
+                radius: 18,
+                child: Column(
+                  children: const [
+                    _ProfileInfoRow(
+                      icon: Icons.badge_outlined,
+                      label: 'Função',
+                      value: 'Operador de máquina',
+                    ),
+                    SizedBox(height: 18),
+                    _ProfileInfoRow(
+                      icon: Icons.verified_user_outlined,
+                      label: 'Status',
+                      value: 'Sessão ativa',
+                    ),
+                    SizedBox(height: 18),
+                    _ProfileInfoRow(
+                      icon: Icons.location_on_outlined,
+                      label: 'Unidade',
+                      value: 'Unidade Omega',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              OutlinedButton.icon(
+                onPressed: () => _logout(context),
+                icon: const Icon(Icons.logout),
+                label: const Text('Sair da conta'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: statusRed,
+                  side: const BorderSide(color: statusRed),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _ProfileInfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: omegaBlueLight, size: 22),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: omegaTextSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: omegaText,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -452,10 +778,10 @@ class MachinePage extends StatefulWidget {
 }
 
 class _MachinePageState extends State<MachinePage> {
-  double? riskScore;
-  double? temperature;
-  double? humidity;
-  DateTime? lastUpdate;
+  double? riskScore = 60;
+  double? temperature = 82.0;
+  double? humidity = 34;
+  DateTime? lastUpdate = DateTime.now();
   bool loading = false;
 
   Future<void> _refresh() async {
@@ -579,37 +905,6 @@ class RiskScoreCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
-              const Text(
-                'SCORE DE RISCO',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: omegaTextSecondary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const Spacer(),
-              if (loading)
-                const Text(
-                  'Atualizando…',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: omegaTextSecondary,
-                  ),
-                )
-              else if (lastUpdate != null)
-                Text(
-                  'há ${_minutesAgo(lastUpdate!)} min',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: omegaTextSecondary,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               RiskGauge(
@@ -695,11 +990,6 @@ class RiskScoreCard extends StatelessWidget {
     );
   }
 
-  static int _minutesAgo(DateTime time) {
-    return DateTime.now()
-        .difference(time)
-        .inMinutes;
-  }
 }
 
 // ============================================================
@@ -1227,6 +1517,7 @@ class _MonitoringFullscreenPageState extends State<MonitoringFullscreenPage>
   String? _permissionError;
 
   double _attention = 100;
+  double _displayAttention = 100;
   double _drowsiness = 0;
   DrowsinessStatus _drowsinessStatus = DrowsinessStatus.normal;
 
@@ -1638,10 +1929,13 @@ class _MonitoringFullscreenPageState extends State<MonitoringFullscreenPage>
     final shouldSpeak =
         frame.status != DrowsinessStatus.normal &&
         (enteredLowAttention || attentionDropped);
+    final smoothedAttention =
+        _displayAttention + ((currentAttention - _displayAttention) * 0.12);
 
     setState(() {
       _drowsiness = frame.score;
       _attention = currentAttention;
+      _displayAttention = smoothedAttention;
       _status = _statusMessage(frame);
       _drowsinessStatus = frame.status;
     });
@@ -1739,6 +2033,7 @@ class _MonitoringFullscreenPageState extends State<MonitoringFullscreenPage>
     _frameWidth = null;
     _frameHeight = null;
     _attention = 100;
+    _displayAttention = 100;
     _drowsiness = 0;
     _drowsinessStatus = DrowsinessStatus.normal;
     _lastAlertSound = null;
@@ -1980,7 +2275,7 @@ class _MonitoringFullscreenPageState extends State<MonitoringFullscreenPage>
                         ),
                         const SizedBox(width: 12),
                         _AttentionRing(
-                          value: _attention,
+                          value: _displayAttention,
                           color: _statusColor,
                         ),
                       ],
@@ -2064,7 +2359,7 @@ class _AttentionRing extends StatelessWidget {
                 begin: 0,
                 end: (value.clamp(0, 100)) / 100,
               ),
-              duration: const Duration(milliseconds: 400),
+              duration: const Duration(milliseconds: 700),
               builder: (context, v, _) => CircularProgressIndicator(
                 value: v,
                 strokeWidth: 5,
@@ -2129,7 +2424,8 @@ class _TelemetryCard extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
                 value,
@@ -2139,15 +2435,13 @@ class _TelemetryCard extends StatelessWidget {
                   color: omegaText,
                 ),
               ),
-              const SizedBox(width: 3),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 3),
-                child: Text(
-                  unit,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: omegaTextSecondary,
-                  ),
+              const SizedBox(width: 4),
+              Text(
+                unit,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: omegaTextSecondary,
                 ),
               ),
             ],
