@@ -69,4 +69,5 @@ IMPORTANTE
   configuradas, o dashboard mostra "Não foi possível ler a API Omega" nas
   tabelas em vez de travar.
 - Duas telas: Frota (estado atual) e Máquina (cálculo + histórico).
-  O ESP32 envia a temperatura; o dashboard só lê o RDS.
+  O ESP32 envia a temperatura; o dashboard só lê o RDS.  
+
