@@ -1,76 +1,78 @@
-# Sistema Anti-Colisão para o Setor Agrícola com IA
+# Omega Sompo
 
-Este projeto tem como objetivo desenvolver um sistema inteligente de prevenção de colisões para ambientes agrícolas, utilizando técnicas de **Inteligência Artificial**, **Visão Computacional** e **Aprendizado de Máquina**.
+Sistema de monitoramento de risco térmico para máquinas agrícolas.
 
-A proposta é identificar obstáculos, pessoas, máquinas ou animais em tempo real por meio de câmera, analisando a cena com **YOLO** e **OpenCV**, para então emitir alertas e ajudar na redução de acidentes em operações no campo.
+O projeto reúne um dashboard web e um aplicativo Flutter conectados à API
+Omega. A API roda em AWS Lambda, acessa as leituras armazenadas no RDS
+PostgreSQL e calcula o risco térmico de cada máquina.
 
----
+## Componentes
 
-## Objetivo
+- **Dashboard Flask**: exibe a frota, scores, níveis de risco, histórico e relatório em PDF.
+- **API Omega**: API Gateway + Lambda + RDS PostgreSQL.
+- **Aplicativo Flutter**: monitoramento de sonolência e alertas por voz para o operador.
 
-Criar uma solução capaz de:
+## Dashboard
 
-- detectar objetos em ambientes agrícolas;
-- identificar possíveis riscos de colisão;
-- auxiliar na segurança de operadores e máquinas;
-- aplicar conceitos de IA em um problema real e relevante.
+O Flask funciona como um proxy seguro: o token da API fica apenas no ambiente do servidor e nunca é enviado ao navegador.
 
----
+### Executar localmente
 
-## Por que este projeto usa IA?
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
 
-Este projeto usa IA porque a detecção de objetos em tempo real exige que o sistema **aprenda padrões visuais** e consiga reconhecer elementos no ambiente sem depender apenas de regras fixas.
+export OMEGA_API_URL="https://SEU_ID.execute-api.us-east-1.amazonaws.com"
+export OMEGA_API_TOKEN="seu_token"
+export OMEGA_MAQUINAS="TRATOR_001"
 
-A inteligência artificial entra principalmente em:
+python app.py
+```
 
-- **detecção de objetos com YOLO**;
-- **análise automática de imagens/vídeos**;
-- **identificação de risco de colisão**;
-- **apoio à tomada de decisão em tempo real**.
+Abra <http://127.0.0.1:5000>.
 
-Assim, o sistema não apenas “olha” para a imagem, mas interpreta o cenário de forma inteligente.
+O `OMEGA_API_TOKEN` deve conter somente o token. O servidor adiciona o prefixo `Bearer` ao fazer a chamada para a API.
 
----
+## Rotas da API Omega
 
-## Tecnologias utilizadas
+- `GET /`: verifica o estado da API.
+- `GET /telemetria`: lista máquinas com leituras.
+- `GET /telemetria/{maquina_id}`: consulta leituras recentes.
+- `GET /telemetria/{maquina_id}/score`: consulta scores recentes.
+- `POST /telemetria`: grava uma leitura e calcula o score.
+- `POST /inspecao`: grava uma inferência visual.
 
-- **Python**
-- **OpenCV**
-- **YOLO**
-- **Machine Learning**
-- **Redes Neurais**
-- **NumPy**
-- **Bibliotecas de apoio para processamento de imagem e vídeo**
+## Arquitetura
 
----
+```text
+ESP32 / Flutter → API Gateway → Lambda → RDS PostgreSQL
+                                  ↑
+                         Dashboard Flask
+```
 
-## Funcionalidades
+O dashboard não acessa o RDS diretamente. A Lambda é responsável pela conexão com o banco, autenticação e cálculo do score.
 
-- captura de vídeo em tempo real;
-- detecção automática de objetos;
-- análise de proximidade e risco;
-- alerta visual em caso de possível colisão;
-- base para expansão com novos modelos e regras de segurança.
+## Variáveis da Lambda
 
----
+A função `omega-api` precisa configurar, no mínimo:
 
-## Fluxo do sistema
+```text
+API_TOKEN
+DB_HOST
+DB_NAME
+DB_USER
+DB_PASSWORD
+DB_SSL=1
+```
 
-1. A câmera captura o ambiente.
-2. O vídeo é processado pelo OpenCV.
-3. O modelo YOLO identifica objetos na cena.
-4. O sistema analisa a posição e proximidade dos elementos detectados.
-5. Caso haja risco, um alerta é gerado.
-6. O operador recebe apoio para evitar acidentes.
+Não versione valores reais dessas variáveis. O banco precisa conter as tabelas `telemetria`, `score_evento` e `inspecao_visual`.
 
----
+## Estrutura
 
-## Relevância do projeto
-
-No contexto agrícola, a segurança é um fator essencial. Máquinas de grande porte, baixa visibilidade, movimento constante e presença de pessoas no ambiente aumentam o risco de acidentes.
-
-Este projeto propõe uma solução baseada em IA para:
-- reduzir riscos;
-- aumentar a segurança operacional;
-- apoiar a automação inteligente;
-- aplicar tecnologia em um cenário real do setor agrícola.
+```text
+app.py              Backend Flask do dashboard
+dashboard/          Interface web
+app/                Aplicativo Flutter
+como_rodar.txt      Instruções operacionais detalhadas
+requirements.txt    Dependências Python
+```
