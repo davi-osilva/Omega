@@ -1,4 +1,4 @@
-# Omega Sompo
+# Omega
 
 Sistema de monitoramento de risco térmico para máquinas agrícolas.
 
